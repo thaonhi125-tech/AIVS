@@ -325,19 +325,33 @@ var ROUTES = [
 ];
 
 /* Metadata for the assumptions panel (label + short note + step) */
+/* Plain business English. A panel member reading this has never worked in shipping,
+   and the presenter has to defend every line of it out loud. */
 var PARAM_META = [
-  { key:"v_trial",      label:"Sea-trial speed", note:"knots", step:0.1 },
-  { key:"c_trial",      label:"Trial consumption", note:"mt/day at trial speed", step:0.5 },
-  { key:"k_foul",       label:"Fouling — fuel", note:"extra consumption / month since drydock", step:0.001 },
-  { key:"s_foul",       label:"Fouling — speed", note:"speed loss / month since drydock", step:0.0005 },
-  { key:"m_weather",    label:"Weather — fuel", note:"extra consumption / weather unit", step:0.01 },
-  { key:"s_weather",    label:"Weather — speed", note:"speed loss / weather unit", step:0.005 },
-  { key:"margin_desk",  label:"Desk flat margin", note:"the constant cushion today's curve adds", step:0.01 },
-  { key:"W_expected",   label:"Model planned weather", note:"weather index the model assumes", step:0.1 },
-  { key:"bunker_price", label:"Bunker price", note:"$/mt", step:10 },
-  { key:"target_margin",label:"Quote markup", note:"markup over break-even to form a quote", step:0.01 },
-  { key:"comp_spread",  label:"Competitor spread", note:"width of rival-quote noise", step:0.01 },
-  { key:"seed",         label:"Random seed", note:"change live to prove it is not cherry-picked", step:1 }
+  { key:"v_trial",      label:"Speed when the ship was new",
+    note:"knots — the figure the sea trial recorded", step:0.1 },
+  { key:"c_trial",      label:"Fuel burned when new",
+    note:"tonnes of fuel per day at that speed", step:0.5 },
+  { key:"k_foul",       label:"Extra fuel a dirty hull burns",
+    note:"added each month since the hull was last cleaned", step:0.001 },
+  { key:"s_foul",       label:"Speed a dirty hull loses",
+    note:"lost each month since the hull was last cleaned", step:0.0005 },
+  { key:"m_weather",    label:"Extra fuel rough weather burns",
+    note:"added per step of rough weather", step:0.01 },
+  { key:"s_weather",    label:"Speed rough weather costs",
+    note:"lost per step of rough weather", step:0.005 },
+  { key:"margin_desk",  label:"The desk's safety cushion today",
+    note:"ONE flat % added to every quote, old ship or new — this is the flaw the demo exposes", step:0.01 },
+  { key:"W_expected",   label:"Weather the model plans for",
+    note:"an average voyage — the model cannot know this one", step:0.1 },
+  { key:"bunker_price", label:"Fuel price",
+    note:"US$ per tonne", step:10 },
+  { key:"target_margin",label:"Profit added on top of our costs",
+    note:"how far above cost we bid — raise it and we bid higher and win less", step:0.01 },
+  { key:"comp_spread",  label:"How much rival bids vary",
+    note:"0 = every rival bids the fair rate · higher = rivals scatter further apart", step:0.01 },
+  { key:"seed",         label:"Which ten cargoes come up",
+    note:"change it live to show the result was not hand-picked", step:1 }
 ];
 
 /* ---- Deterministic PRNG: mulberry32 -------------------------------------- */
