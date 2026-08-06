@@ -23,10 +23,20 @@ and discovers they **win fewer cargoes but earn more money**.
 
 | Key | Action |
 |---|---|
-| `Space` | take the cargo / advance |
+| `Space` · `PageDown` · `→` · `↓` · `Enter` | take the cargo / advance |
+| `PageUp` · `←` · `↑` · `Backspace` | step back one cargo (recover from overshooting) |
 | `M` | switch pricing: today's curve ⇄ the model |
 | `R` | reset to a fresh presentation |
 | `E` | jump straight to the summary |
+| `Esc` | close the assumptions panel |
+
+**The whole demo runs on the forward button alone.** Presentation remotes
+(Logitech, Kensington) send `PageDown`/`PageUp` rather than `Space`, so every key a
+remote can emit is accepted. At the first summary, forward starts the model run — the
+demo never dead-ends on a press that appears to do nothing.
+
+Fastest stage path: hand over the clicker for three or four cargoes → `E` → talk →
+forward (or `M`) → `E`. About ten presses to the punchline.
 
 The header button **"Where do these numbers come from?"** opens the Assumptions panel —
 every parameter is visible, editable, and labelled *illustrative, not company data*.
