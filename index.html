@@ -547,7 +547,8 @@ function renderLeft(){
         +   '<div class="route-name">'+v.route.name+'</div>'
         +   '<div class="offer-sub"><span class="dist">'+n0(v.route.nm)+' nm</span> · '+hullCue(v.h)+'</div>';
   if (isPreplay && state.stage==="resolved"){
-    html += '<div class="preplay">First cargo — played for you. Press Space to take the wheel.</div>';
+    html += '<div class="preplay">First cargo — played for you. '
+          + (IS_TOUCH ? 'Tap' : 'Press Space') + ' to take the wheel.</div>';
   }
   html += '</div>';
 
