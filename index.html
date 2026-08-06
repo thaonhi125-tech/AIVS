@@ -428,9 +428,15 @@ function summarizeCanonical(mode){
 }
 
 /* ---- Live scoreboard (reflects the player's actual decisions) ------------ */
+/* How far the book has actually been played. Chart and scoreboard both read this,
+   so stepping back rewinds the numbers as well as the bars. */
+function reachedIndex(){
+  var r = (state.stage === "resolved") ? state.idx : state.idx - 1;
+  return Math.min(r, 9);
+}
 function liveScore(){
-  var won=0, profit=0;
-  for (var i=0;i<state.voyages.length;i++){
+  var won=0, profit=0, upTo = reachedIndex();
+  for (var i=0;i<=upTo && i<state.voyages.length;i++){
     if (state.decisions[i] !== "quote") continue;
     var o = state.voyages[i][state.mode];
     if (o.win){ won++; profit += o.realProfit; }
@@ -572,7 +578,7 @@ function renderChart(){
   svg += '<text x="'+padL+'" y="'+(zeroY-8).toFixed(1)+'" fill="#B9C7D2" font-size="14" '
        + 'font-family="Calibri, Segoe UI, sans-serif">break-even</text>';
 
-  var reachedTo = state.stage==="resolved" ? state.idx : state.idx-1;
+  var reachedTo = reachedIndex();
   for (var i=0;i<10;i++){
     var cx = padL + slotW*i + slotW/2;
     if (i > reachedTo) continue;
@@ -684,6 +690,32 @@ function advance(){
   }
   render();
 }
+/* One forward button runs the whole demo. At the first summary, forward does what
+   the screen already tells the presenter to do — start the model run — so the
+   demo never dead-ends on a key press that appears to do nothing. */
+function forward(){
+  if (state.idx >= 10){
+    if (!state.modelRevealed && state.mode === "seaTrial") toggleMode();
+    return;                                  // the comparison is the end; stay put
+  }
+  advance();
+}
+
+/* Stage recovery: overshooting must not cost a full reset. Steps back to the
+   previous resolved cargo. */
+function goBack(){
+  if (state.idx >= 10){ state.idx = 9; state.stage = "resolved"; render(); return; }
+  if (state.stage === "resolved"){
+    if (state.idx === 0) return;             // already at the first cargo
+    state.idx--;
+  } else {
+    if (state.idx === 0) return;
+    state.idx--;
+  }
+  state.stage = "resolved";
+  render();
+}
+
 function toggleMode(){
   state.mode = (state.mode==="seaTrial") ? "model" : "seaTrial";
   resetRun();
@@ -713,14 +745,29 @@ function fullReset(){
 }
 
 /* ---- Keyboard ------------------------------------------------------------ */
+/* Presentation clickers do NOT all send Space. Logitech/Kensington-style remotes
+   send PageDown/PageUp; some send arrow keys. If only Space advanced the demo,
+   a presenter holding a real clicker would face a screen that looks frozen.
+   Accept every forward/back key a remote can emit. */
+var KEYS_FORWARD = ["Space"," ","PageDown","ArrowRight","ArrowDown","Enter","n","N"];
+var KEYS_BACK    = ["PageUp","ArrowLeft","ArrowUp","Backspace","p","P"];
+
 document.addEventListener("keydown", function(e){
   if (isTyping(e.target)) return;
-  var k = e.key.toLowerCase();
-  if (e.code==="Space" || e.key===" "){ e.preventDefault(); advance(); }
-  else if (k==="m"){ e.preventDefault(); toggleMode(); }
-  else if (k==="r"){ e.preventDefault(); coldReset(); }
-  else if (k==="e"){ e.preventDefault(); jumpToEnd(); }
-  else if (k==="a"){ e.preventDefault(); toggleAssump(); }
+  var k = e.key, code = e.code, lower = (k||"").toLowerCase();
+
+  if (k === "Escape"){ e.preventDefault(); closeAssump(); return; }
+
+  if (KEYS_FORWARD.indexOf(k) !== -1 || KEYS_FORWARD.indexOf(code) !== -1){
+    e.preventDefault(); forward(); return;
+  }
+  if (KEYS_BACK.indexOf(k) !== -1 || KEYS_BACK.indexOf(code) !== -1){
+    e.preventDefault(); goBack(); return;
+  }
+  if (lower==="m"){ e.preventDefault(); toggleMode(); }
+  else if (lower==="r"){ e.preventDefault(); coldReset(); }
+  else if (lower==="e"){ e.preventDefault(); jumpToEnd(); }
+  else if (lower==="a"){ e.preventDefault(); toggleAssump(); }
 });
 function isTyping(el){ return el && (el.tagName==="INPUT" || el.tagName==="TEXTAREA"); }
 
