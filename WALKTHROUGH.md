@@ -65,6 +65,12 @@ Screen at handover: voyage 1, "decide" state. Left column: cargo card + estimate
         VERDICT: friction bordering on broken. Losing must be as loud as
         winning, or it reads as a bug the panelist caused.
 
+> **Later addendum (User B, on the deployed build):** this pass was driven with the
+> keyboard, which hid a fatal assumption — a real presentation clicker sends
+> `PageDown`/`PageUp`, not `Space`, and the build ignored those keys entirely. See
+> F10–F13 in FINDINGS.md. Lesson for the next audit: walking through with the input
+> device the user will *actually* hold is not the same as walking through with a keyboard.
+
 Overall User A: acts, but from momentum, not comprehension. Feels *tested*
 (jargon they don't know, a choice with no guidance), which is the opposite
 of the "I discovered the bias myself" feeling the spec demands.

@@ -119,3 +119,72 @@ Every "after" figure is lower. The busiest run-screen state fell from **34 → 9
 
 **Interactive elements: 3 → 2.  On-screen numbers: 34 → 9 (run screen), 10 → 6 (summary).**
 Both numbers in every pair are smaller. The session did its job.
+
+---
+
+# ADDENDUM — stage-hardening pass (driven as User B, on the deployed build)
+
+Run after deployment, driving the live page as the presenter rather than inspecting
+state. One finding was severe enough to have killed the demo on stage.
+
+## F10 — the demo ignored every key a presentation clicker sends (CRITICAL)
+
+Only `Space` advanced. Presentation remotes (Logitech, Kensington) emit
+`PageDown`/`PageUp`, and some emit arrow keys — **not** `Space`. Measured on the
+deployed build before the fix:
+
+| Key a remote emits | Response |
+|---|---|
+| `PageDown` | none |
+| `ArrowRight` / `ArrowDown` | none |
+| `Enter` | none |
+
+AIVS-DEMO-001 §6 states the presenter "will be holding a clicker, not a mouse", so
+the build contradicted its own stage requirement: clicking the remote would have left
+a frozen-looking screen in front of the panel. This is precisely User B's stated fear —
+*"a demo that survives nerves, a bad projector"*.
+
+**Fix.** Accept every forward key a remote can emit (`Space`, `PageDown`, `ArrowRight`,
+`ArrowDown`, `Enter`, `N`) and every back key (`PageUp`, `ArrowLeft`, `ArrowUp`,
+`Backspace`, `P`). No new on-screen element — keys only, so the subtraction count above
+is unaffected.
+
+## F11 — forward at the summary did nothing (dead end)
+
+At the first summary the screen says *"Press M to run the same ten cargoes with the
+model"*, but the forward button — the one the presenter is already holding down — did
+nothing. A press that produces no response reads as a broken demo and invites a second,
+harder press.
+
+**Fix.** Forward at the first summary now starts the model run, i.e. it does what the
+screen already instructs. **The entire demo is now drivable with the forward button
+alone** — verified end to end: 39 presses from cold open to the final comparison, with
+the mode switching automatically at press 20. `E` remains the shortcut (≈10 presses to
+the punchline).
+
+## F12 — overshooting cost a full reset
+
+There was no way back. A presenter who pressed once too many could only hit `R` and
+start the whole run again, on stage, under time pressure.
+
+**Fix.** Back keys step to the previous resolved cargo. This exposed a latent bug: the
+scoreboard counted every decided cargo regardless of position, so stepping back left the
+money total ahead of the chart. Chart and scoreboard now share one `reachedIndex()`, so
+both rewind together (verified: cargoes won 2 → 1 on stepping back).
+
+## F13 — `Esc` did not close the assumptions panel
+
+The panel is the honesty defence, opened mid-question and then in the way.
+**Fix.** `Esc` closes it.
+
+## Re-verified after the addendum
+
+- Clicker keys, back-step, `M`, `R`, `E`, `Esc` — all confirmed on the deployed build.
+- Typing in the assumptions inputs does not trigger shortcuts.
+- No console errors; no page scroll (810 = 810); layout stable.
+- **Simulation untouched:** 8 won / \$206,835 → 4 won / \$431,699, delta **\$224,864**,
+  realised-below-expected true on every won voyage — identical to the pre-addendum build.
+
+**Not verified by machine:** real clicker hardware. The automation harness can only
+dispatch synthetic key events, so the physical remote should be plugged in and run
+once before Saturday.
