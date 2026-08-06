@@ -5,8 +5,11 @@ member plays the chartering desk for ten dry-bulk voyages using the old sea-tria
 curve, watches money leak, then replays the **identical ten voyages** with the model —
 and discovers they **win fewer cargoes but earn more money**.
 
-> Open `AIVS-DEMO-001-Voyage-Pricing-Simulator.html` by double-clicking it. No server,
-> no network, no install. It runs from a USB stick with wifi switched off.
+**Live:** https://aivs-two.vercel.app
+
+> **For the stage, do not rely on the live link.** Download `index.html` and open it by
+> double-clicking. No server, no network, no install — it runs from a USB stick with wifi
+> switched off. Venue wifi fails; the file does not.
 
 ## What it demonstrates
 
@@ -44,7 +47,7 @@ Changing the seed live re-runs the whole thing deterministically (the answer to 
 
 | File | What it is |
 |---|---|
-| `AIVS-DEMO-001-Voyage-Pricing-Simulator.html` | The demo. The deliverable. |
+| `index.html` | The demo. The deliverable. Self-contained — download and double-click. |
 | `AIVS-DEMO-001-Master-Prompt.md` | The build spec (the machine). |
 | `AIVS-DEMO-002-User-Audit-Prompt.md` | The UX-audit spec (the experience). |
 | `WALKTHROUGH.md` | Three cold-open user logs, second by second. |
