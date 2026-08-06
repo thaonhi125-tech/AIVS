@@ -200,6 +200,45 @@
     .sum-hero{font-size:96px}
     .delta{font-size:104px}
   }
+
+  /* ---- Touch (iPad) -------------------------------------------------------
+     There is no keyboard on a tablet, so the whole surface advances the demo.
+     Kill the tap-highlight flash, the double-tap zoom delay, and text selection
+     that a fast presenter would otherwise trigger by tapping repeatedly. */
+  body.touch{
+    -webkit-tap-highlight-color:transparent;
+    -webkit-user-select:none; user-select:none;
+    touch-action:manipulation;
+  }
+  body.touch .take-hint{display:none}          /* the button speaks for itself */
+  #btn-touch-reset{display:none}
+  body.touch #btn-touch-reset{
+    display:inline-block; font-family:var(--sans); font-size:20px; line-height:1;
+    cursor:pointer; color:var(--mist); background:transparent;
+    border:1px solid var(--line); border-radius:6px; padding:9px 14px;
+  }
+  /* Tapping to advance must never be mistaken for a dead screen: give the
+     touch user the same confirmation the keyboard user gets. */
+  body.touch .advance{
+    background:rgba(28,114,147,.16); border:1px solid rgba(28,114,147,.45);
+    border-radius:8px; padding:12px 16px; text-align:center; color:var(--mist);
+  }
+
+  /* iPad portrait and narrow windows: stack the two columns instead of
+     squeezing them. Landscape (1180px) and the projector are untouched. */
+  @media (max-width:1000px){
+    body{overflow:auto}
+    #header{height:auto; flex-wrap:wrap; padding:12px 16px; gap:12px}
+    #main{grid-template-columns:1fr; height:auto; padding:16px; gap:16px}
+    #chart-wrap{min-height:260px}
+    .earn{font-size:44px}
+    .score .v{font-size:38px}
+    .sum-hero{font-size:64px}
+    .delta{font-size:68px}
+    .delta-sub{font-size:22px}
+    .cols{flex-direction:column; align-items:center; gap:14px}
+    #summary{padding:24px 18px; align-items:flex-start; overflow-y:auto}
+  }
 </style>
 </head>
 <body>
@@ -208,6 +247,7 @@
   <div id="mode-pill" class="sea">TODAY'S CURVE</div>
   <div id="voyage-counter">Cargo <b>1</b> of 10</div>
   <div class="spacer"></div>
+  <button id="btn-touch-reset" title="Start over">↻</button>
   <button id="btn-assump">Where do these numbers come from?</button>
 </div>
 
@@ -555,7 +595,7 @@ function renderReveal(v, o){
           +   'They win it, you walk away — no voyage, no exposure.</div>';
   }
   var last = state.idx >= 9;
-  html += '<div class="advance">Press <kbd>Space</kbd> '
+  html += '<div class="advance">' + fwdCue() + ' '
         + (last ? 'to see how the book finished.' : 'for the next cargo.') + '</div>';
   return html + '</div>';
 }
@@ -634,9 +674,11 @@ function renderSummary(){
       + '<div class="sum-lead">Priced the way the desk does today, you won '+s.won+' of 10 cargoes and made</div>'
       + '<div class="sum-hero'+(s.profit<0?' neg':'')+'">'+money(s.profit)+'</div>'
       + '<div class="sum-sub">Every voyage earned less than you expected. You felt the leak.</div>'
-      + '<div class="sum-cta"><span class="k">M</span>Run the same ten cargoes with the model</div>'
+      + '<div class="sum-cta">'
+      +   (IS_TOUCH ? 'Tap to run the same ten cargoes with the model'
+                    : '<span class="k">M</span>Run the same ten cargoes with the model') + '</div>'
       + '<div class="sum-foot">same routes · same weather · same rivals — only the pricing changes'
-      +   ' &nbsp;·&nbsp; <kbd>R</kbd> start over</div>';
+      +   (IS_TOUCH ? '' : ' &nbsp;·&nbsp; <kbd>R</kbd> start over') + '</div>';
     return;
   }
   // The reveal: the money delta is the single largest object on the screen.
@@ -657,7 +699,9 @@ function renderSummary(){
     + '</div>'
     + '<div class="verdict-line">That is the project working. It is also the six months where it looks '
     +   'like the project failing: fewer cargoes on the board, more money in the bank.</div>'
-    + '<div class="sum-foot"><kbd>R</kbd> present again from the start</div>';
+    + '<div class="sum-foot">'
+    +   (IS_TOUCH ? 'tap ↻ above to present again from the start'
+                  : '<kbd>R</kbd> present again from the start') + '</div>';
 }
 
 /* ---- Failsafe: never show a blank screen to an audience ------------------ */
@@ -752,6 +796,47 @@ function fullReset(){
 var KEYS_FORWARD = ["Space"," ","PageDown","ArrowRight","ArrowDown","Enter","n","N"];
 var KEYS_BACK    = ["PageUp","ArrowLeft","ArrowUp","Backspace","p","P"];
 
+/* ---- Touch (iPad) --------------------------------------------------------
+   A tablet has no keyboard, and the resolved screen carries no button — so on
+   a tablet the demo used to dead-end after the first cargo. The whole surface
+   advances instead, which keeps "exactly one thing to press" intact rather
+   than scattering buttons across the screen. */
+var IS_TOUCH = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches)
+            || ("ontouchstart" in window && navigator.maxTouchPoints > 0);
+
+var swipeX = 0, swipeY = 0, swallowNextClick = false;
+
+/* Controls own their taps; everything else advances. */
+function isControl(el){
+  if (!el || !el.closest) return false;
+  return !!(el.closest("#assump") || el.closest("#btn-assump") ||
+            el.closest("#btn-touch-reset") || el.closest(".take"));
+}
+
+document.addEventListener("click", function(e){
+  if (swallowNextClick){ swallowNextClick = false; return; }   // a swipe already acted
+  if (isControl(e.target)) return;
+  if (document.getElementById("assump").classList.contains("show")){ closeAssump(); return; }
+  forward();
+});
+
+document.addEventListener("touchstart", function(e){
+  var t = e.changedTouches[0]; swipeX = t.clientX; swipeY = t.clientY;
+}, {passive:true});
+
+document.addEventListener("touchend", function(e){
+  if (isControl(e.target)) return;
+  var t = e.changedTouches[0];
+  var dx = t.clientX - swipeX, dy = t.clientY - swipeY;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5){
+    swallowNextClick = true;                 // stop the tap handler double-firing
+    if (dx < 0) forward(); else goBack();    // swipe left = on, swipe right = back
+  }
+}, {passive:true});
+
+/* Wording follows the device: "Press Space" is meaningless on a tablet. */
+function fwdCue(){ return IS_TOUCH ? "Tap anywhere" : "Press <kbd>Space</kbd>"; }
+
 document.addEventListener("keydown", function(e){
   if (isTyping(e.target)) return;
   var k = e.key, code = e.code, lower = (k||"").toLowerCase();
@@ -804,6 +889,9 @@ function closeAssump(){ document.getElementById("assump").classList.remove("show
 
 /* ---- Wire up + init ------------------------------------------------------ */
 function init(){
+  // A tablet has no R key, so it gets the one control the keyboard makes unnecessary.
+  if (IS_TOUCH) document.body.classList.add("touch");
+  document.getElementById("btn-touch-reset").addEventListener("click", coldReset);
   document.getElementById("btn-assump").addEventListener("click", toggleAssump);
   document.getElementById("btn-assump-close").addEventListener("click", closeAssump);
   document.getElementById("btn-assump-apply").addEventListener("click", applyAssump);
